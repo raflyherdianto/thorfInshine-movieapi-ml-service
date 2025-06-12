@@ -1,8 +1,5 @@
-fastapi
-uvicorn
+flask
+gunicorn
+pandas
 scikit-learn
 numpy
-pandas
-pydantic
-python-multipart
-gunicorn
