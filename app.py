@@ -1,5 +1,3 @@
-# movieapi/app.py
-
 from flask import Flask, request, jsonify
 from utils import get_recommendations, search_movie
 
