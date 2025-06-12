@@ -31,7 +31,7 @@ jobs:
       
       - name: Install dependencies
         run: pip install -r requirements.txt
-        
+      
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
       - name: Zip artifact for deployment
@@ -61,10 +61,6 @@ jobs:
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
-      
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -72,10 +68,27 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_32DB54EE63954B58BCCD3298BBB71446 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5FC2A0E3E66745A4B65101C0B3F4FB27 }}
 
+      # LANGKAH BARU: Menghentikan aplikasi untuk menghindari error 409 Conflict
+      - name: Stop Azure Web App
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp stop --name 'movieapi-ml-service' --resource-group 'bangraply-azure-development'
+            
+      # LANGKAH DIMODIFIKASI: Deploy menggunakan file zip secara langsung
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'movieapi-ml-service'
           slot-name: 'Production'
-          
+          package: 'release.zip'
+
+      # LANGKAH BARU: Memulai kembali aplikasi setelah deployment selesai
+      # 'if: always()' memastikan langkah ini selalu berjalan, bahkan jika deployment gagal
+      - name: Start Azure Web App
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp start --name 'movieapi-ml-service' --resource-group 'bangraply-azure-development'
